@@ -7,7 +7,7 @@
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background: #000; font-family: monospace;
+            overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, monospace;
             user-select: none; -webkit-user-select: none;
         }
         
@@ -24,7 +24,7 @@
             position: relative; border-radius: 4px;
         }
 
-        /* HIGH TECH DATA REVEAL LAYER */
+        /* METADATA DATABASE REVEAL PANEL */
         #final-photo {
             position: absolute; 
             top: 0; left: 0; width: 100%; height: 100%;
@@ -38,23 +38,35 @@
             box-sizing: border-box;
         }
         
-        .terminal-box {
+        .database-card {
             width: 100%;
             max-width: 320px;
-            border: 1px solid #333;
-            background: #050505;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.9);
+            border: 1px solid #3b82f6;
+            background: #030712;
+            padding: 25px 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 35px rgba(59, 130, 246, 0.25);
             box-sizing: border-box;
             font-size: 13px;
-            line-height: 1.6;
-            letter-spacing: 0.5px;
+            line-height: 1.7;
         }
 
-        .system-green {
-            color: #22c55e;
+        .system-blue {
+            color: #3b82f6;
             font-weight: bold;
+        }
+
+        .target-node-box {
+            font-size: 24px;
+            color: #ffffff;
+            font-weight: bold;
+            text-align: center;
+            margin: 18px 0;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border-top: 1px solid #222;
+            border-bottom: 1px solid #222;
+            padding: 12px 0;
         }
 
         .top-ui {
@@ -86,7 +98,7 @@
     <div class="camera-container">
         <div class="top-ui">
             <div>RAW</div>
-            <div style="color:#eab308">● HDR</div>
+            <div style="color:#3b82f6">● CLOUD_SYNC</div>
             <div>1x</div>
         </div>
 
@@ -94,21 +106,19 @@
             <div class="crosshair"></div>
         </div>
 
-        <!-- Terminal Output Reveal Screen -->
+        <!-- High-Tech Time-Delayed Output Screen -->
         <div id="final-photo">
-            <div class="terminal-box">
-                <div style="color: #666; margin-bottom: 10px;">[ SYSTEM LEVEL DEBUG ]</div>
-                <div>EXPOSURE CAPTURE: <span class="system-green">SUCCESS</span></div>
-                <div>METADATA CACHE: LOADED</div>
-                <div>------------------------</div>
-                <!-- MANUALLY CUSTOMIZE THESE VALUES BEFORE PERFORMING -->
-                <div>TARGET: <span class="system-green">TODD KENT</span></div>
-                <div>DOB AUTH: <span class="system-green">09/21/1971</span></div>
-                <div>NODE VER: <span class="system-green">SUBARU_2017</span></div>
-                <div>------------------------</div>
-                <div>NFC PROXIMITY: ACTIVE</div>
-                <div>DEBT COUPLING: COMPROMISED</div>
-                <div style="margin-top: 15px; text-align: center; color: #dc2626; font-weight: bold; animation: blink 1s infinite;">● OPEN ACCESS GRANTED</div>
+            <div class="database-card">
+                <div style="color: #555; font-size: 11px; margin-bottom: 8px;">[ SERVER METADATA RECON ]</div>
+                <div>EXPOSURE CAPTURE: <span class="system-blue">SUCCESS</span></div>
+                
+                <!-- THE SECRET CLIMAX: This field forces a time completely independent of execution -->
+                <div>REGISTRATION TIME: <span class="system-blue" id="delayed-timestamp">00:00:00</span></div>
+                <div>EXPOSURE VERIFY: <span class="system-blue">COMPILED</span></div>
+                
+                <div class="target-node-box" id="target-output">GRAPHENE</div>
+                
+                <div style="font-size: 11px; text-align: center; color: #3b82f6; opacity: 0.8;">● HARDWARE EXPOSURE PRE-LOCKED</div>
             </div>
         </div>
 
@@ -125,6 +135,30 @@
         const captureBtn = document.getElementById('capture-btn');
         const finalPhoto = document.getElementById('final-photo');
         const flash = document.getElementById('flash');
+        const delayedTimestamp = document.getElementById('delayed-timestamp');
+        const targetOutput = document.getElementById('target-output');
+
+        // 1. DYNAMIC SCRAPER: Pulls the forced item effortlessly from the URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const forceWord = urlParams.get('p');
+        if (forceWord) {
+            targetOutput.textContent = decodeURIComponent(forceWord).toUpperCase();
+        }
+
+        // 2. TIME-DELAY PARSER: Calculates an artificial 12-minute back-dated stamp instantly
+        const currentTime = new Date();
+        const delayedTime = new Date(currentTime.getTime() - (12 * 60 * 1000)); // Sets offset to exactly 12 minutes ago
+        
+        let hours = delayedTime.getHours();
+        let minutes = delayedTime.getMinutes();
+        let seconds = delayedTime.getSeconds();
+        
+        // Formatting padding
+        hours = hours < 10 ? '0' + hours : hours;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+        
+        delayedTimestamp.textContent = `${hours}:${minutes}:${seconds} EST`;
 
         captureBtn.addEventListener('click', () => {
             flash.style.opacity = '1';
