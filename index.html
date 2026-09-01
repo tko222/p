@@ -9,27 +9,19 @@
             margin: 0; padding: 0; width: 100%; height: 100%;
             overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         }
-        /* Live Camera Feed */
         #video {
             width: 100%; height: 100%; object-fit: cover;
         }
-        
-        /* THE SECRET CARD OVERLAY (3 of Diamonds) */
         #card-overlay {
             position: absolute;
-            top: 50%; 
-            left: 50%;
-            /* Adjust scale(0.35) if you need the digital card bigger or smaller to match your blank card */
-            transform: translate(-50%, -50%) scale(0.35) rotate(0deg); 
-            width: auto; 
-            height: 50%; 
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.35); 
+            width: auto; height: 50%; 
             opacity: 0;
             transition: opacity 0.05s ease-in-out;
             pointer-events: none;
             z-index: 10;
         }
-
-        /* Mock Camera UI Controls */
         .ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: space-between;
@@ -48,9 +40,6 @@
             background: white; border: 4px solid #000;
             box-shadow: 0 0 0 4px white; cursor: pointer;
         }
-        .shutter-btn:active {
-            transform: scale(0.95);
-        }
         #flash {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: white; opacity: 0; pointer-events: none; z-index: 30;
@@ -60,53 +49,35 @@
 <body>
 
     <video id="video" autoplay playsinline></video>
-    
-    <!-- Hardcoded to 3 of Diamonds (3D) -->
     <img id="card-overlay" src="https://githubusercontent.com" alt="">
-
-    
     <div id="flash"></div>
 
     <div class="ui-layer">
         <div class="top-bar"></div>
-        <div class="bottom-bar">
-            <div class="shutter-btn" id="shutter"></div>
+        <div class="bottom-bar" id="shutter-zone">
+            <div class="shutter-btn"></div>
         </div>
     </div>
 
     <script>
         const video = document.getElementById('video');
-        const shutter = document.getElementById('shutter');
+        const shutterZone = document.getElementById('shutter-zone');
         const overlay = document.getElementById('card-overlay');
         const flash = document.getElementById('flash');
 
-        // Strong mobile constraints to enforce back camera usage
-        const constraints = {
-            video: {
-                facingMode: "environment",
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-            }
-        };
-
-        // Initialize camera
-        navigator.mediaDevices.getUserMedia(constraints)
-            .then(stream => { 
-                video.srcObject = stream; 
-            })
-            .catch(err => { 
-                // Fallback for missing back camera / desktop testing
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(stream => { video.srcObject = stream; })
+            .catch(err => {
                 navigator.mediaDevices.getUserMedia({ video: true })
                     .then(stream => { video.srcObject = stream; })
-                    .catch(e => alert("Camera blocked. Please allow browser permissions."));
+                    .catch(e => alert("Please allow camera permissions."));
             });
 
-        // Photo action
-        shutter.addEventListener('click', () => {
+        shutterZone.addEventListener('click', () => {
             flash.style.opacity = '1';
             setTimeout(() => { flash.style.opacity = '0'; flash.style.transition = 'opacity 0.2s ease'; }, 50);
             video.pause();
-            overlay.style.opacity = '0.9'; 
+            overlay.style.opacity = '0.95'; 
         });
     </script>
 </body>
