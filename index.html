@@ -44,7 +44,6 @@
 </head>
 <body>
 
-    <!-- Tap icon to activate screen interaction -->
     <div id="start-prompt">📷</div>
 
     <video id="video" autoplay playsinline></video>
@@ -66,25 +65,32 @@
         const overlay = document.getElementById('card-overlay');
         const flash = document.getElementById('flash');
 
-        // This function activates only after you physically touch the camera icon
-        startPrompt.addEventListener('click', () => {
+        startPrompt.addEventListener('click', async () => {
             startPrompt.style.display = 'none';
             video.style.display = 'block';
             controls.style.display = 'flex';
 
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                .then(stream => { video.srcObject = stream; })
-                .catch(err => {
-                    navigator.mediaDevices.getUserMedia({ video: true })
-                        .then(stream => { video.srcObject = stream; })
-                        .catch(e => alert("Please allow camera permission."));
+            // Crash Protection: Try running the camera, but don't break the page if it fails
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" } 
                 });
+                video.srcObject = stream;
+            } catch (err) {
+                console.log("Back camera blocked, trying fallback...");
+                try {
+                    const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = fallbackStream;
+                } catch (e) {
+                    console.log("All camera streams blocked by device browser settings.");
+                }
+            }
         });
 
         shutterZone.addEventListener('click', () => {
             flash.style.opacity = '1';
             setTimeout(() => { flash.style.opacity = '0'; flash.style.transition = 'opacity 0.2s ease'; }, 50);
-            video.pause();
+            try { video.pause(); } catch(e) {}
             overlay.style.opacity = '0.95'; 
         });
     </script>
