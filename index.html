@@ -3,72 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Camera</title>
+    <title>Camera Pro</title>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            user-select: none; -webkit-user-select: none;
         }
-        /* A convincing mock viewfinder background instead of a live stream */
-        .viewfinder-bg {
-            width: 100%; height: 100%; background: #111;
+        
+        /* Realistic Mock Viewfinder Grids */
+        .camera-container {
+            position: relative; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .viewfinder {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #09090b; display: flex; justify-content: center; align-items: center; z-index: 1;
+        }
+        .crosshair {
+            width: 40px; height: 40px; border: 2px solid rgba(255,255,255,0.2);
+            position: relative; border-radius: 4px;
+        }
+        .crosshair::before {
+            content: ''; position: absolute; top: 19px; left: -10px; width: 60px; height: 2px; background: rgba(255,255,255,0.1);
+        }
+
+        /* Final Captured Card Layout (3 of Diamonds) */
+        #final-photo {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #050505; display: flex; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.08s ease-in-out; z-index: 10;
+        }
+        #final-photo img {
+            height: 55%; width: auto; max-width: 85%; object-fit: contain;
+            filter: drop-shadow(0 10px 25px rgba(0,0,0,0.5));
+        }
+
+        /* Control Bars */
+        .top-ui {
+            height: 60px; background: rgba(0,0,0,0.6); z-index: 20;
+            display: flex; justify-content: space-between; align-items: center; padding: 0 20px;
+            color: #aaa; font-size: 13px; letter-spacing: 1px;
+        }
+        .bottom-ui {
+            height: 150px; background: #000; z-index: 20;
             display: flex; justify-content: center; align-items: center;
         }
-        #reveal-photo {
-            width: 100%; height: 100%; object-fit: cover; opacity: 0;
-            transition: opacity 0.1s ease-in-out; position: absolute; top: 0; left: 0; z-index: 10;
+        .shutter-ring {
+            width: 76px; height: 76px; border-radius: 50%;
+            border: 4px solid #fff; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; background: transparent;
         }
-        .ui-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; justify-content: space-between;
-            pointer-events: none; z-index: 20;
+        .shutter-solid {
+            width: 62px; height: 62px; border-radius: 50%; background: #fff;
+            transition: transform 0.1s ease;
         }
-        .top-bar { height: 60px; background: rgba(0,0,0,0.5); }
-        .bottom-bar {
-            height: 140px; background: rgba(0,0,0,0.9);
-            display: flex; justify-content: center; align-items: center; pointer-events: auto;
+        .shutter-ring:active .shutter-solid {
+            transform: scale(0.9);
         }
-        .shutter-btn {
-            width: 75px; height: 75px; border-radius: 50%;
-            background: white; border: 4px solid #000; box-shadow: 0 0 0 4px white; cursor: pointer;
-        }
+
+        /* Flash Screen overlay */
         #flash {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; opacity: 0; pointer-events: none; z-index: 30;
+            background: #fff; opacity: 0; pointer-events: none; z-index: 30;
         }
     </style>
 </head>
 <body>
 
-    <div class="viewfinder-bg">
-        <!-- Clean, convincing dark grid look while aiming -->
-        <div style="color: #333; font-size: 14px;">[ Loading Viewfinder... ]</div>
-    </div>
-    
-    <!-- This is a high-quality photo of a card being revealed that drops in instantly -->
-    <img id="reveal-photo" src="https://githubusercontent.com" alt="">
-    
-    <div id="flash"></div>
+    <div class="camera-container">
+        <!-- System Top Bar -->
+        <div class="top-ui">
+            <div>RAW</div>
+            <div style="color:#eab308">● HDR</div>
+            <div>1x</div>
+        </div>
 
-    <div class="ui-layer">
-        <div class="top-bar"></div>
-        <div class="bottom-bar" id="shutter-zone">
-            <div class="shutter-btn"></div>
+        <!-- Viewfinder Center -->
+        <div class="viewfinder">
+            <div class="crosshair"></div>
+        </div>
+
+        <!-- The 3 of Diamonds Image Canvas -->
+        <div id="final-photo">
+            <img src="https://githubusercontent.com" alt="">
+        </div>
+
+        <!-- Screen Flash Panel -->
+        <div id="flash"></div>
+
+        <!-- Bottom Shutter Bar -->
+        <div class="bottom-ui">
+            <div class="shutter-ring" id="capture-btn">
+                <div class="shutter-solid"></div>
+            </div>
         </div>
     </div>
 
     <script>
-        const shutterZone = document.getElementById('shutter-zone');
-        const revealPhoto = document.getElementById('reveal-photo');
+        const captureBtn = document.getElementById('capture-btn');
+        const finalPhoto = document.getElementById('final-photo');
         const flash = document.getElementById('flash');
 
-        shutterZone.addEventListener('click', () => {
-            // Camera flash animation
+        captureBtn.addEventListener('click', () => {
+            // 1. Trigger realistic pure white flash
             flash.style.opacity = '1';
-            setTimeout(() => { flash.style.opacity = '0'; flash.style.transition = 'opacity 0.2s ease'; }, 60);
             
-            // Drop the image overlay instantly
-            revealPhoto.style.opacity = '1'; 
+            setTimeout(() => {
+                // 2. Hide flash smoothly
+                flash.style.opacity = '0';
+                flash.style.transition = 'opacity 0.25s ease-out';
+                
+                // 3. Drop in the 3 of Diamonds presentation screen instantly
+                finalPhoto.style.opacity = '1';
+            }, 60);
         });
     </script>
 </body>
