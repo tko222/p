@@ -9,25 +9,21 @@
             margin: 0; padding: 0; width: 100%; height: 100%;
             overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         }
-        #video {
-            width: 100%; height: 100%; object-fit: cover; display: none;
+        /* A convincing mock viewfinder background instead of a live stream */
+        .viewfinder-bg {
+            width: 100%; height: 100%; background: #111;
+            display: flex; justify-content: center; align-items: center;
         }
-        #start-prompt {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #555; font-size: 70px; text-align: center; cursor: pointer; pointer-events: auto;
-        }
-        #card-overlay {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.35); 
-            width: auto; height: 50%; opacity: 0;
-            transition: opacity 0.05s ease-in-out; pointer-events: none; z-index: 10;
+        #reveal-photo {
+            width: 100%; height: 100%; object-fit: cover; opacity: 0;
+            transition: opacity 0.1s ease-in-out; position: absolute; top: 0; left: 0; z-index: 10;
         }
         .ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: space-between;
-            pointer-events: none; z-index: 20; display: none;
+            pointer-events: none; z-index: 20;
         }
-        .top-bar { height: 60px; background: rgba(0,0,0,0.4); }
+        .top-bar { height: 60px; background: rgba(0,0,0,0.5); }
         .bottom-bar {
             height: 140px; background: rgba(0,0,0,0.9);
             display: flex; justify-content: center; align-items: center; pointer-events: auto;
@@ -44,13 +40,17 @@
 </head>
 <body>
 
-    <div id="start-prompt">📷</div>
-
-    <video id="video" autoplay playsinline></video>
-    <img id="card-overlay" src="https://githubusercontent.com" alt="">
+    <div class="viewfinder-bg">
+        <!-- Clean, convincing dark grid look while aiming -->
+        <div style="color: #333; font-size: 14px;">[ Loading Viewfinder... ]</div>
+    </div>
+    
+    <!-- This is a high-quality photo of a card being revealed that drops in instantly -->
+    <img id="reveal-photo" src="https://githubusercontent.com" alt="">
+    
     <div id="flash"></div>
 
-    <div class="ui-layer" id="controls">
+    <div class="ui-layer">
         <div class="top-bar"></div>
         <div class="bottom-bar" id="shutter-zone">
             <div class="shutter-btn"></div>
@@ -58,40 +58,17 @@
     </div>
 
     <script>
-        const video = document.getElementById('video');
-        const startPrompt = document.getElementById('start-prompt');
-        const controls = document.getElementById('controls');
         const shutterZone = document.getElementById('shutter-zone');
-        const overlay = document.getElementById('card-overlay');
+        const revealPhoto = document.getElementById('reveal-photo');
         const flash = document.getElementById('flash');
 
-        startPrompt.addEventListener('click', async () => {
-            startPrompt.style.display = 'none';
-            video.style.display = 'block';
-            controls.style.display = 'flex';
-
-            // Crash Protection: Try running the camera, but don't break the page if it fails
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "environment" } 
-                });
-                video.srcObject = stream;
-            } catch (err) {
-                console.log("Back camera blocked, trying fallback...");
-                try {
-                    const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    video.srcObject = fallbackStream;
-                } catch (e) {
-                    console.log("All camera streams blocked by device browser settings.");
-                }
-            }
-        });
-
         shutterZone.addEventListener('click', () => {
+            // Camera flash animation
             flash.style.opacity = '1';
-            setTimeout(() => { flash.style.opacity = '0'; flash.style.transition = 'opacity 0.2s ease'; }, 50);
-            try { video.pause(); } catch(e) {}
-            overlay.style.opacity = '0.95'; 
+            setTimeout(() => { flash.style.opacity = '0'; flash.style.transition = 'opacity 0.2s ease'; }, 60);
+            
+            // Drop the image overlay instantly
+            revealPhoto.style.opacity = '1'; 
         });
     </script>
 </body>
