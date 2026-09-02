@@ -7,7 +7,7 @@
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, monospace;
+            overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             user-select: none; -webkit-user-select: none;
         }
         
@@ -15,67 +15,42 @@
             position: relative; width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: space-between;
         }
-        .viewfinder {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #09090b; display: flex; justify-content: center; align-items: center; z-index: 1;
-        }
-        .crosshair {
-            width: 40px; height: 40px; border: 2px solid rgba(255,255,255,0.15);
-            position: relative; border-radius: 4px;
+        
+        #video {
+            width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;
         }
 
-        /* METADATA DATABASE REVEAL PANEL */
+        /* REVEAL TEXT OVERLAY */
         #final-photo {
-            position: absolute; 
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; 
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            opacity: 0; 
-            z-index: 10;
-            pointer-events: none;
-            color: #fff;
-            padding: 30px;
-            box-sizing: border-box;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent; display: flex; justify-content: center; align-items: center;
+            opacity: 0; z-index: 10; pointer-events: none;
         }
         
-        .database-card {
-            width: 100%;
-            max-width: 320px;
-            border: 1px solid #3b82f6;
-            background: #030712;
-            padding: 25px 20px;
-            border-radius: 12px;
-            box-shadow: 0 0 35px rgba(59, 130, 246, 0.25);
-            box-sizing: border-box;
-            font-size: 13px;
-            line-height: 1.7;
-        }
-
-        .system-blue {
-            color: #3b82f6;
-            font-weight: bold;
-        }
-
-        .target-node-box {
-            font-size: 24px;
-            color: #ffffff;
-            font-weight: bold;
-            text-align: center;
-            margin: 18px 0;
-            letter-spacing: 3px;
+        .revealed-text {
+            font-size: 34px;
+            font-weight: 900;
+            color: #000000; /* Bold black text looks like marker */
+            letter-spacing: 4px;
             text-transform: uppercase;
-            border-top: 1px solid #222;
-            border-bottom: 1px solid #222;
-            padding: 12px 0;
+            font-family: 'Courier New', Courier, monospace;
+            background: rgba(255, 255, 255, 0.85); /* Box mimicking white card background */
+            padding: 15px 35px;
+            border-radius: 6px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 80%;
+            text-align: center;
+            word-wrap: break-word;
         }
 
+        /* UI Bars */
         .top-ui {
-            height: 60px; background: rgba(0,0,0,0.6); z-index: 20;
+            height: 60px; background: rgba(0,0,0,0.4); z-index: 20; position: relative;
             display: flex; justify-content: space-between; align-items: center; padding: 0 20px;
             color: #aaa; font-size: 13px; letter-spacing: 1px;
         }
         .bottom-ui {
-            height: 150px; background: #000; z-index: 20;
+            height: 150px; background: rgba(0,0,0,0.8); z-index: 20; position: relative;
             display: flex; justify-content: center; align-items: center;
         }
         .shutter-ring {
@@ -86,7 +61,6 @@
         .shutter-solid {
             width: 62px; height: 62px; border-radius: 50%; background: #fff;
         }
-
         #flash {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #fff; opacity: 0; pointer-events: none; z-index: 30;
@@ -96,34 +70,25 @@
 <body>
 
     <div class="camera-container">
+        <!-- Top Status Bar -->
         <div class="top-ui">
             <div>RAW</div>
-            <div style="color:#3b82f6">● CLOUD_SYNC</div>
+            <div style="color:#eab308" id="voice-status">● VOICE_READY</div>
             <div>1x</div>
         </div>
 
-        <div class="viewfinder">
-            <div class="crosshair"></div>
-        </div>
+        <!-- Live Viewfinder Stream -->
+        <video id="video" autoplay playsinline></video>
 
-        <!-- High-Tech Time-Delayed Output Screen -->
+        <!-- Hidden Canvas for Spoken Text Reveal -->
         <div id="final-photo">
-            <div class="database-card">
-                <div style="color: #555; font-size: 11px; margin-bottom: 8px;">[ SERVER METADATA RECON ]</div>
-                <div>EXPOSURE CAPTURE: <span class="system-blue">SUCCESS</span></div>
-                
-                <!-- THE SECRET CLIMAX: This field forces a time completely independent of execution -->
-                <div>REGISTRATION TIME: <span class="system-blue" id="delayed-timestamp">00:00:00</span></div>
-                <div>EXPOSURE VERIFY: <span class="system-blue">COMPILED</span></div>
-                
-                <div class="target-node-box" id="target-output">GRAPHENE</div>
-                
-                <div style="font-size: 11px; text-align: center; color: #3b82f6; opacity: 0.8;">● HARDWARE EXPOSURE PRE-LOCKED</div>
-            </div>
+            <div class="revealed-text" id="target-output">MIND BLANK</div>
         </div>
 
+        <!-- Flash Panel -->
         <div id="flash"></div>
 
+        <!-- Shutter Button -->
         <div class="bottom-ui">
             <div class="shutter-ring" id="capture-btn">
                 <div class="shutter-solid"></div>
@@ -132,39 +97,72 @@
     </div>
 
     <script>
+        const video = document.getElementById('video');
         const captureBtn = document.getElementById('capture-btn');
         const finalPhoto = document.getElementById('final-photo');
         const flash = document.getElementById('flash');
-        const delayedTimestamp = document.getElementById('delayed-timestamp');
         const targetOutput = document.getElementById('target-output');
+        const voiceStatus = document.getElementById('voice-status');
 
-        // 1. DYNAMIC SCRAPER: Pulls the forced item effortlessly from the URL parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const forceWord = urlParams.get('p');
-        if (forceWord) {
-            targetOutput.textContent = decodeURIComponent(forceWord).toUpperCase();
+        let capturedWord = "PALOMINO"; // Default backup fallback word
+
+        // 1. HARDWARE CAMERA INITIALIZATION
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(stream => { video.srcObject = stream; })
+            .catch(err => {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(s => { video.srcObject = s; })
+                    .catch(e => console.log("Camera permissions denied."));
+            });
+
+        // 2. LIVE BACKGROUND VOICE-RECOGNITION ENGINE
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                // Grab the latest string of text parsed from the conversation
+                const resultIndex = event.results.length - 1;
+                const transcript = event.results[resultIndex][0].transcript.trim();
+                
+                // Split sentences into standalone words to find the target noun
+                const words = transcript.split(' ');
+                if (words.length > 0) {
+                    const latestWord = words[words.length - 1].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+                    if (latestWord.length > 2) {
+                        capturedWord = latestWord.toUpperCase();
+                        // Turn the indicator yellow briefly so you know it successfully caught the voice data
+                        voiceStatus.style.color = '#eab308';
+                        setTimeout(() => { voiceStatus.style.color = '#22c55e'; }, 400);
+                    }
+                }
+            };
+
+            // Keep the microphone listening indefinitely even if there are long pauses
+            recognition.onend = () => { recognition.start(); };
+            recognition.start();
+            voiceStatus.style.color = '#22c55e';
+        } else {
+            voiceStatus.textContent = "● API_UNSUPPORTED";
+            voiceStatus.style.color = '#dc2626';
         }
 
-        // 2. TIME-DELAY PARSER: Calculates an artificial 12-minute back-dated stamp instantly
-        const currentTime = new Date();
-        const delayedTime = new Date(currentTime.getTime() - (12 * 60 * 1000)); // Sets offset to exactly 12 minutes ago
-        
-        let hours = delayedTime.getHours();
-        let minutes = delayedTime.getMinutes();
-        let seconds = delayedTime.getSeconds();
-        
-        // Formatting padding
-        hours = hours < 10 ? '0' + hours : hours;
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        seconds = seconds < 10 ? '0' + seconds : seconds;
-        
-        delayedTimestamp.textContent = `${hours}:${minutes}:${seconds} EST`;
-
+        // 3. SHUTTER SNAP REVEAL
         captureBtn.addEventListener('click', () => {
+            targetOutput.textContent = capturedWord;
+            
+            // Trigger shutter flash animation
             flash.style.opacity = '1';
             setTimeout(() => {
                 flash.style.opacity = '0';
-                flash.style.transition = 'opacity 0.2s ease-out';
+                flash.style.transition = 'opacity 0.25s ease-out';
+                
+                // Freeze camera feed and drop down the written word reveal card
+                try { video.pause(); } catch(e) {}
                 finalPhoto.style.opacity = '1';
             }, 60);
         });
