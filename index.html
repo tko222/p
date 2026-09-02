@@ -1,1 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Camera Pro</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background: #000; font-family: monospace;
+            user-select: none; -webkit-user-select: none;
+        }
+        
+        .camera-container {
+            position: relative; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        
+        #video {
+            width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;
+        }
 
+        /* RE-ENGINEERED MILITARY THERMAL TERMINAL BLOCK */
+        #final-photo {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 7, 1, 0.98); display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; z-index: 10; pointer-events: none; padding: 25px; box-sizing: border-box;
+        }
+        
+        .terminal-block {
+            width: 100%;
+            max-width: 320px;
+            border: 2px solid #22c55e;
+            background: #020601;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.3), inset 0 0 20px rgba(34, 197, 94, 0.15);
+            box-sizing: border-box;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #22c55e;
+            position: relative;
+            text-shadow: 0 0 4px rgba(34, 197, 94, 0.6);
+        }
+
+        /* High-tech warning bracket tags */
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(34, 197, 94, 0.4);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* MASSIVE BOLD TEXT INTERFACE REVEAL */
+        .revealed-name-box {
+            font-size: 32px;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.8), 0 0 20px rgba(34, 197, 94, 0.8);
+            text-align: center;
+            margin: 18px 0;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            border: 1px dashed rgba(34, 197, 94, 0.6);
+            padding: 16px 0;
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .terminal-footer {
+            border-top: 1px solid rgba(34, 197, 94, 0.4);
+            padding-top: 8px;
+            margin-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: rgba(34, 197, 94, 0.7);
+        }
+
+        .top-ui {
+            height: 60px; background: rgba(0,0,0,0.5); z-index: 20; position: relative;
+            display: flex; justify-content: space-between; align-items: center; padding: 0 20px;
+            color: #aaa; font-size: 13px; letter-spacing: 1px;
+        }
+        .bottom-ui {
+            height: 150px; background: rgba(0,0,0,0.9); z-index: 20; position: relative;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .shutter-ring {
+            width: 76px; height: 76px; border-radius: 50%;
+            border: 4px solid #fff; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; background: transparent;
+        }
+        .shutter-solid { width: 62px; height: 62px; border-radius: 50%; background: #fff; }
+        #flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; opacity: 0; pointer-events: none; z-index: 30; }
+        #status { color: #555; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+    <div class="camera-container">
+        <div class="top-ui">
+            <div>[SEC_RAW]</div>
+            <div id="status">● SENSOR_IDLE</div>
+            <div>[1X]</div>
+        </div>
+
+        <!-- Viewfinder Stream -->
+        <video id="video" autoplay playsinline></video>
+
+        <!-- Upgraded CRT Séance Output Terminal -->
+        <div id="final-photo">
+            <div class="terminal-block">
+                <div class="terminal-header">
+                    <div>SYS.LOG // SIGMA_7</div>
+                    <div style="color: #fff; background: #dc2626; padding: 0 4px; border-radius: 2px; text-shadow:none;">CRITICAL</div>
+                </div>
+                
+                <div>FOCAL EXPOSURE: <span style="color:#fff;">[COMPILED]</span></div>
+                <div>THERMAL RECON: <span style="color:#fff;">ANOMALY DECODED</span></div>
+                <div>SIGNAL INTEGRITY: 98.42%</div>
+                
+                <!-- Targeted Large Bold Name Display -->
+                <div class="revealed-name-box" id="target-output">THINKING...</div>
+                
+                <div>NODE MATRIX REFERENCE: SEANCE_CORE_V2</div>
+                <div class="terminal-footer">
+                    <div>SECURE LINK LAYER</div>
+                    <div>MEM_LOCK: TRUE</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="flash"></div>
+
+        <div class="bottom-ui">
+            <div class="shutter-ring" id="capture-btn"><div class="shutter-solid"></div></div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const captureBtn = document.getElementById('capture-btn');
+        const finalPhoto = document.getElementById('final-photo');
+        const flash = document.getElementById('flash');
+        const targetOutput = document.getElementById('target-output');
+        const statusLog = document.getElementById('status');
+
+        let liveCapturedName = "SPIRIT"; 
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(stream => { video.srcObject = stream; })
+            .catch(err => {
+                navigator.mediaDevices.getUserMedia({ video: true }).then(s => { video.srcObject = s; });
+            });
+
+        // Background Voice Listener
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[event.results.length - 1].transcript.trim();
+                const words = transcript.split(' ');
+                if (words.length > 0) {
+                    const latestWord = words[words.length - 1].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+                    if (latestWord.length > 2) {
+                        liveCapturedName = latestWord.toUpperCase();
+                        statusLog.style.color = '#22c55e'; // Indicator flash
+                        setTimeout(() => { statusLog.style.color = '#555'; }, 400);
+                    }
+                }
+            };
+            recognition.onend = () => { recognition.start(); };
+            recognition.start();
+        }
+
+        captureBtn.addEventListener('click', () => {
+            targetOutput.textContent = liveCapturedName;
+            flash.style.opacity = '1';
+            setTimeout(() => {
+                flash.style.opacity = '0';
+                flash.style.transition = 'opacity 0.2s ease-out';
+                try { video.pause(); } catch(e) {}
+                finalPhoto.style.opacity = '1';
+            }, 60);
+        });
+    </script>
+</body>
+</html>
